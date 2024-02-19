@@ -3,97 +3,103 @@ import { useIsToken } from '@/hooks'
 import IconButton from '@mui/material/IconButton'
 import Popover from '@mui/material/Popover'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
-import { useState } from 'react'
-export default function BookList() {
+import { useState, useEffect } from 'react'
+import { getBookList, learnBook, deletLearnBook, type BookProp } from '@/api/book'
+import { useNavigate } from 'react-router-dom'
+import { observer } from 'mobx-react-lite'
+import { Book } from '@/store'
+
+function BookList() {
   useIsToken()
-  const [menuPop, setMenuPop] = useState(false)
+  const navigate = useNavigate()
+  const [bookList, setBookList] = useState<BookProp[]>([])
+  const typeMap = {
+    1: '词汇本',
+    2: '',
+    3: '',
+  }
+  useEffect(() => {
+    getBookList().then((res) => {
+      setBookList(res)
+    })
+  }, [])
   function openMenuPop(event: React.MouseEvent<HTMLButtonElement>) {
     setAnchorEl(event.currentTarget)
+    setDataId(event.currentTarget?.dataset.id)
   }
   function handleClose() {
     setAnchorEl(null)
+    setTimeout(() => setDataId(undefined), 500)
   }
   const [anchorEl, setAnchorEl] = useState<HTMLButtonElement | null>(null)
+  const [dataId, setDataId] = useState<string>()
   const open = Boolean(anchorEl)
-  function hanlde() {
-    alert('123')
+  function toWordList() {
+    navigate(`/word-list/${anchorEl?.dataset.id}`)
+    handleClose()
+  }
+  function onLearn() {
+    // 取消学习
+    if (isLearnBook(dataId!)) {
+      deletLearnBook(dataId!).then(() => Book.getlearnBook())
+    } else {
+      learnBook(dataId!).then(() => Book.getlearnBook())
+    }
+  }
+  function isLearnBook(bookId: string, option?: [any, any]) {
+    const find = Book.learnBook.find((item) => item.bookId == bookId)
+    if (option) {
+      return find ? option[0] : option[1]
+    }
+    return !!find
   }
   return (
     <div>
       <List>
-        <Item>
-          <ImgBox>
-            <img src='http://file.freetoplay.cn/index.png' alt='楚门的世界' />
-            <h5>楚门的世界</h5>
-          </ImgBox>
-          <Info>
-            <div className='top'>
-              <span>40人学习中</span>
-              <IconButton size='small' aria-label='delete' onClick={openMenuPop}>
-                <MoreVertIcon color='disabled' />
-              </IconButton>
-            </div>
-            <div className='middle'>
-              <p>一些单词本的信息展示</p>
-            </div>
-            <div className='bottom'>
-              <p>影视</p>
-            </div>
-          </Info>
-        </Item>
-        <Item>
-          <ImgBox>
-            <img src='http://file.freetoplay.cn/index.png' alt='楚门的世界' />
-            <h5>楚门的世界</h5>
-          </ImgBox>
-          <Info>
-            <div className='top'>
-              <span>40人学习中</span>
-              <IconButton size='small' aria-label='delete' onClick={openMenuPop}>
-                <MoreVertIcon color='disabled' />
-              </IconButton>
-            </div>
-            <div className='middle'>
-              <p>一些单词本的信息展示</p>
-            </div>
-            <div className='bottom'>
-              <p>影视</p>
-            </div>
-          </Info>
-        </Item>
-        <Item>
-          <ImgBox>
-            <img src='http://file.freetoplay.cn/index.png' alt='楚门的世界' />
-            <h5>楚门的世界</h5>
-          </ImgBox>
-          <Info>
-            <div className='top'>
-              <span>40人学习中</span>
-              <IconButton size='small' aria-label='delete' onClick={openMenuPop}>
-                <MoreVertIcon color='disabled' />
-              </IconButton>
-            </div>
-            <div className='middle'>
-              <p>一些单词本的信息展示</p>
-            </div>
-            <div className='bottom'>
-              <p>影视</p>
-            </div>
-          </Info>
-        </Item>
+        {bookList
+          .sort((book) => isLearnBook(book.id, [-1, 1]))
+          .map((book) => (
+            <Item key={book.id}>
+              <ImgBox>
+                <img src={book.coverUrl} alt={book.name} />
+                <h5>{book.name}</h5>
+              </ImgBox>
+              <Info>
+                <div className='top'>
+                  <span>40人学习中(功能未实现)</span>
+                  <IconButton size='small' data-id={book.id} aria-label='delete' onClick={openMenuPop}>
+                    <MoreVertIcon color='disabled' />
+                  </IconButton>
+                </div>
+                <div className='middle'>
+                  <p>
+                    共有 {book.wordCount}个单词 {book.phraseCount}个短句
+                  </p>
+                </div>
+                <div className='bottom'>
+                  <p>
+                    {typeMap[book.type]}
+                    {isLearnBook(book.id, [' / 学习中', ''])}
+                  </p>
+                </div>
+              </Info>
+            </Item>
+          ))}
       </List>
       <Popover open={open} onClose={handleClose} anchorEl={anchorEl}>
         <MenuList>
-          <li onClick={hanlde}>查看例句</li>
-          <li onClick={hanlde}>取消学习</li>
+          <li onClick={() => toWordList()}>查看单词例句</li>
+          <li onClick={() => onLearn()}> {isLearnBook(dataId!, ['取消', '加入'])}学习</li>
         </MenuList>
       </Popover>
     </div>
   )
 }
 
+export default observer(BookList)
+
 const List = styled.ul`
-  padding: 30px 10px 10px;
+  padding: 25px 10px 10px;
 `
 
 const Item = styled.li`
@@ -119,8 +125,10 @@ const ImgBox = styled.div`
   margin-right: 10px;
   img {
     width: 80px;
+    height: 118px;
     border-radius: 6px;
     box-shadow: 0 2px 12px 0 rgba(0, 0, 0, 0.1);
+    object-fit: cover;
   }
   h5 {
     width: 80px;

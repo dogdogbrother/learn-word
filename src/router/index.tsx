@@ -1,26 +1,57 @@
 import { createHashRouter, RouterProvider, Navigate } from 'react-router-dom'
 import Login from '@/pages/login'
-import Home from '@/pages/home'
+import Layout from '@/pages/layout'
 import BookList from '@/pages/book-list'
-
-const router = createHashRouter([
+import Info from '@/pages/info'
+import WordList from '@/pages/word-list'
+import Home from '@/pages/home'
+import Learn from '@/pages/learn'
+import App from '@/App'
+const Router = [
   {
-    path: '/',
-    element: <Home />,
+    path: '/app',
+    element: <Layout />,
     children: [
       {
-        path: '/book-list',
+        path: 'home',
+        element: <Home />,
+      },
+      {
+        path: 'book-list',
         element: <BookList />,
       },
       {
+        path: 'info',
+        element: <Info />,
+      },
+      {
         path: '',
-        element: <Navigate to='/book-list' />,
+        element: <Navigate to='/app/home' />,
       },
     ],
   },
   {
+    path: '/word-list/:bookId',
+    element: <WordList />,
+  },
+  {
     path: '/login',
     element: <Login />,
+  },
+  {
+    path: '/learn',
+    element: <Learn />,
+  },
+  {
+    path: '',
+    element: <Navigate to='/app' />,
+  },
+]
+const router = createHashRouter([
+  {
+    path: '/',
+    element: <App />,
+    children: Router,
   },
 ])
 

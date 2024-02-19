@@ -1,20 +1,28 @@
 import Styled from '@emotion/styled'
 import LoginBg from '@/assets/img/login-bg.jpg'
-// import { useNavigate } from 'react-router-dom'
-import { TextField, Button } from '@mui/material'
+import { useNavigate } from 'react-router-dom'
+import { TextField } from '@mui/material'
 import { useState } from 'react'
 import { observer } from 'mobx-react-lite'
-import UserStore from '@/store/user'
+import { User, Book } from '@/store'
+import { LoadingButton } from '@mui/lab'
 
 export default observer(function Login() {
-  const { login } = UserStore
-  // const navigate = useNavigate()
+  const navigate = useNavigate()
   function onLogin() {
-    // navigate('/')
-    login({ username, password })
+    setLoading(true)
+    User.login({ username, password })
+      .then((res) => {
+        const { token } = res
+        localStorage.setItem('token', token)
+        navigate('/')
+        Book.getlearnBook()
+      })
+      .finally(() => setLoading(false))
   }
   const [username, setUsername] = useState('')
   const [password, setPassword] = useState('')
+  const [loading, setLoading] = useState(false)
   return (
     <Wrap>
       <Card>
@@ -33,14 +41,15 @@ export default observer(function Login() {
           id='login-password'
           variant='standard'
           margin='normal'
+          type='password'
           onChange={(event: React.ChangeEvent<HTMLInputElement>) => {
             setPassword(event.target.value)
           }}
         />
         <p className='explain'>首次登录就是注册</p>
-        <Button style={{ width: '100%' }} variant='contained' onClick={onLogin}>
+        <LoadingButton loading={loading} style={{ width: '100%' }} variant='contained' onClick={onLogin}>
           登录
-        </Button>
+        </LoadingButton>
       </Card>
     </Wrap>
   )

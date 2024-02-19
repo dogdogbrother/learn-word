@@ -71,4 +71,5 @@ body::-webkit-scrollbar {
   width: 100%;
   max-width: 580px;
   margin: 0 auto;
+  position: relative;
 }

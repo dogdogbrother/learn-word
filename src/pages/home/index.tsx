@@ -1,19 +1,15 @@
-import styled from '@emotion/styled'
-import { Outlet } from 'react-router-dom'
-import { useIsToken } from '@/hooks'
-import Tabbar from './tabbar'
+import { Button } from '@mui/material'
+import { useNavigate } from 'react-router-dom'
 export default function Home() {
-  useIsToken()
+  const navigate = useNavigate()
+  function toLearn() {
+    navigate('/learn')
+  }
   return (
-    <AppMain>
-      <div>
-        <Outlet></Outlet>
-      </div>
-      <Tabbar></Tabbar>
-    </AppMain>
+    <div>
+      <Button variant='contained' onClick={toLearn}>
+        开始学习
+      </Button>
+    </div>
   )
 }
-const AppMain = styled.div`
-  padding-bottom: 40px;
-  position: relative;
-`

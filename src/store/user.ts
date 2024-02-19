@@ -1,6 +1,5 @@
 import { makeObservable, observable, action } from 'mobx'
 import { login, getInfo, type LoginProp } from '@/api/user'
-
 class UserStore {
   userInfo = {}
   constructor() {
@@ -14,7 +13,10 @@ class UserStore {
     return login(form)
   }
   getInfo = () => {
-    getInfo()
+    return getInfo().then((res) => {
+      console.log(res)
+      return res
+    })
   }
 }
 
